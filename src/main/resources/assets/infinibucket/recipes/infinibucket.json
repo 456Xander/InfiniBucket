@@ -1,0 +1,18 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"GBG",
+		" G "
+	],
+	"key": {
+		"G": {
+			"item": "minecraft:gold_ingot"
+		},
+		"B": {
+			"item": "minecraft:water_bucket"
+		}
+	},
+	"result": {
+		"item": "infinibucket:infini_bucket"
+	}
+}
