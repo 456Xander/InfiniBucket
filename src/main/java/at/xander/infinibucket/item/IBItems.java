@@ -10,11 +10,17 @@ public class IBItems {
 	public static Item itemInfiniBucket;
 
 	public static void registerItems(List<Item> registry) {
+		if (itemInfiniBucket == null) {
+			new ItemInfBucket().setUnlocalizedName("infini_bucket").setRegistryName("infini_bucket");
+			InfiniBucket.logger.warn(
+					"The infini Bucket item was not initialised before registerItems event! That should not be possible");
+		}
 		registry.add(itemInfiniBucket);
 	}
 
 	public static void createItems() {
-		itemInfiniBucket = new ItemInfBucket().setUnlocalizedName("infini_bucket").setRegistryName("infini_bucket");
-
+		if (itemInfiniBucket == null) {
+			itemInfiniBucket = new ItemInfBucket().setUnlocalizedName("infini_bucket").setRegistryName("infini_bucket");
+		}
 	}
 }

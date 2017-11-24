@@ -1,5 +1,8 @@
 package at.xander.infinibucket.main;
 
+
+import org.apache.logging.log4j.Logger;
+
 import at.xander.infinibucket.item.IBItems;
 import at.xander.infinibucket.item.RegistryHandler;
 import at.xander.infinibucket.proxy.ServerProxy;
@@ -11,7 +14,7 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid = InfiniBucket.MODID, name = "Infini Bucket", version = "1.0.0")
+@Mod(modid = InfiniBucket.MODID, name = "Infini Bucket", version = "1.0.1")
 public class InfiniBucket {
 	
 	public static final String MODID = "infinibucket";
@@ -22,10 +25,13 @@ public class InfiniBucket {
 	@SidedProxy(serverSide = "at.xander.infinibucket.proxy.ServerProxy", clientSide = "at.xander.infinibucket.proxy.ClientProxy")
 	public static ServerProxy proxy;
 
+	public static Logger logger;
+	
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent e) {
-		MinecraftForge.EVENT_BUS.register(new RegistryHandler());
+		logger = e.getModLog();
 		IBItems.createItems();
+		MinecraftForge.EVENT_BUS.register(new RegistryHandler());
 	}
 
 	@EventHandler

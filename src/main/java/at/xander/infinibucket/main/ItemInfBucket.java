@@ -2,10 +2,12 @@ package at.xander.infinibucket.main;
 
 import at.xander.infinibucket.item.FluidHandlerInfiniBucket;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.block.BlockCauldron;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemBucket;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -14,14 +16,13 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 
@@ -48,19 +49,19 @@ public class ItemInfBucket extends ItemBucket {
 		BlockPos blockpos = raytraceresult.getBlockPos();
 		IBlockState block = worldIn.getBlockState(blockpos);
 
-		/*
-		 * if (block.getBlock() instanceof BlockCauldron) { // Block is Cauldron
-		 * System.out.println("Filling Cauldron"); BlockCauldron cauldron =
-		 * (BlockCauldron) block.getBlock(); int level = ((Integer)
-		 * block.getValue(BlockCauldron.LEVEL)).intValue(); if (level < 3 &&
-		 * !worldIn.isRemote) { playerIn.addStat(StatList.CAULDRON_FILLED);
-		 * cauldron.setWaterLevel(worldIn, blockpos, block, 3);
-		 * worldIn.playSound((EntityPlayer) null, blockpos,
-		 * SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0F, 1.0F); } return
-		 * new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemstack);
-		 * 
-		 * } else
-		 */ {
+		if (block.getBlock() instanceof BlockCauldron) { // Block is Cauldron
+			System.out.println("Filling Cauldron");
+			BlockCauldron cauldron = (BlockCauldron) block.getBlock();
+			int level = ((Integer) block.getValue(BlockCauldron.LEVEL)).intValue();
+			if (level < 3 && !worldIn.isRemote) {
+				playerIn.addStat(StatList.CAULDRON_FILLED);
+				cauldron.setWaterLevel(worldIn, blockpos, block, 3);
+				worldIn.playSound((EntityPlayer) null, blockpos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS,
+						1.0F, 1.0F);
+			}
+			return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemstack);
+
+		} else {
 			boolean flag1 = block.getBlock().isReplaceable(worldIn, blockpos);
 			BlockPos blockpos1 = flag1 && raytraceresult.sideHit == EnumFacing.UP ? blockpos
 					: blockpos.offset(raytraceresult.sideHit);
