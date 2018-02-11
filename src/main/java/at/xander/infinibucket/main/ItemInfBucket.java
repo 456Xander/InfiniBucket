@@ -20,19 +20,27 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 
 public class ItemInfBucket extends ItemBucket {
 
-	@CapabilityInject(FluidHandlerItemStack.class)
-	static IFluidHandlerItem ItemFluidHandler = null;
+	static FluidHandlerInfiniBucket ItemFluidHandler = null;
+	private int capacity = 100;
 
 	public ItemInfBucket() {
+		this(0);
+	}
+
+	public ItemInfBucket(int capacity) {
 		super(Blocks.FLOWING_WATER);
+		this.capacity = capacity;
+
+	}
+
+	@Override
+	public boolean isDamageable() {
+		return true;
 	}
 
 	@Override
@@ -46,6 +54,8 @@ public class ItemInfBucket extends ItemBucket {
 			return new ActionResult<ItemStack>(EnumActionResult.PASS, itemstack);
 		}
 
+		itemstack.setItemDamage(itemstack.getItemDamage() - 1);
+
 		BlockPos blockpos = raytraceresult.getBlockPos();
 		IBlockState block = worldIn.getBlockState(blockpos);
 
@@ -56,6 +66,7 @@ public class ItemInfBucket extends ItemBucket {
 			if (level < 3 && !worldIn.isRemote) {
 				playerIn.addStat(StatList.CAULDRON_FILLED);
 				cauldron.setWaterLevel(worldIn, blockpos, block, 3);
+
 				worldIn.playSound((EntityPlayer) null, blockpos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS,
 						1.0F, 1.0F);
 			}
@@ -73,6 +84,8 @@ public class ItemInfBucket extends ItemBucket {
 					CriteriaTriggers.PLACED_BLOCK.trigger((EntityPlayerMP) playerIn, blockpos1, itemstack);
 				}
 
+				itemstack.setItemDamage(itemstack.getItemDamage() + 1);
+
 				playerIn.addStat(StatList.getObjectUseStats(this));
 				return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemstack);
 			} else {
@@ -85,9 +98,21 @@ public class ItemInfBucket extends ItemBucket {
 	@Override
 	public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
 		if (this.getClass() == ItemInfBucket.class) {
-			return new FluidHandlerInfiniBucket(stack, 1000, FluidRegistry.WATER);
+			ItemFluidHandler = new FluidHandlerInfiniBucket(stack, 10000, FluidRegistry.WATER);
+			return ItemFluidHandler;
 		}
 		return super.initCapabilities(stack, nbt);
+	}
+
+	@Override
+	public boolean showDurabilityBar(ItemStack stack) {
+		return stack.getItemDamage() != 0;
+	}
+
+	@Override
+	public double getDurabilityForDisplay(ItemStack stack) {
+		capacity = 100;
+		return capacity != 0 ? 1 - ((double) stack.getItemDamage() / capacity) : 1;
 	}
 
 }

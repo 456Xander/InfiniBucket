@@ -5,6 +5,7 @@ import java.util.List;
 import at.xander.infinibucket.main.InfiniBucket;
 import at.xander.infinibucket.main.ItemInfBucket;
 import net.minecraft.item.Item;
+import net.minecraftforge.common.config.Configuration;
 
 public class IBItems {
 	public static Item itemInfiniBucket;
@@ -18,7 +19,7 @@ public class IBItems {
 		registry.add(itemInfiniBucket);
 	}
 
-	public static void createItems() {
+	public static void createItems(Configuration conf) {
 		if (itemInfiniBucket == null) {
 			itemInfiniBucket = new ItemInfBucket().setUnlocalizedName("infini_bucket").setRegistryName("infini_bucket");
 		}
