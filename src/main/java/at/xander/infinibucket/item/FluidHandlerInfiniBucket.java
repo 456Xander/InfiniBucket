@@ -20,34 +20,28 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 public class FluidHandlerInfiniBucket implements IFluidHandlerItem, ICapabilityProvider {
 
 	private ItemStack container;
-	private int capacity;
 	private FluidStack fluid;
 	private boolean realInfinite = false;
 
-	public FluidHandlerInfiniBucket(ItemStack container, int capacity, FluidStack fluid) {
+	public FluidHandlerInfiniBucket(ItemStack container, boolean infinite, FluidStack fluid) {
 		this.container = container;
-		this.capacity = capacity;
 		this.fluid = fluid;
-		if (fluid.amount == 0) {
-			this.capacity = 1;
-			this.fluid.amount = 1;
-			realInfinite = true;
-		}
+		realInfinite = infinite;
 	}
 
-	public FluidHandlerInfiniBucket(ItemStack container, int capacity, Fluid fluid) {
-		if (capacity == 0) {
-			capacity = 1;
-			realInfinite = true;
-		}
+	public FluidHandlerInfiniBucket(ItemStack container, boolean infinite, Fluid fluid) {
 		this.container = container;
-		this.capacity = capacity;
-		this.fluid = new FluidStack(fluid, capacity);
+		this.realInfinite = infinite;
+		this.fluid = new FluidStack(fluid, container.getMaxDamage() - container.getItemDamage());
+		if (this.fluid.amount == 0) {
+			this.fluid.amount = 1;
+		}
 	}
 
 	@Override
 	public IFluidTankProperties[] getTankProperties() {
-		return new FluidTankProperties[] { new FluidTankProperties(fluid, capacity) };
+		return new FluidTankProperties[] {
+				new FluidTankProperties(fluid, container.getMaxDamage() - container.getItemDamage()) };
 	}
 
 	@Override
@@ -68,18 +62,18 @@ public class FluidHandlerInfiniBucket implements IFluidHandlerItem, ICapabilityP
 		if (container.getCount() != 1 || maxDrain <= 0) {
 			return null;
 		}
-		if (fluid == null || fluid.amount <= 0) {
+		if (fluid == null || (container.getMaxDamage() - container.getItemDamage()) <= 0) {
 			return null;
 		}
 		if (InfiniBucket.DEBUG) {
 			InfiniBucket.logger.log(Level.INFO, "Draining FluidStack, " + realInfinite + ", " + fluid.amount);
 		}
 
-		final int drainAmount = Math.min(fluid.amount, maxDrain);
+		final int drainAmount = realInfinite ? maxDrain
+				: Math.min((container.getMaxDamage() - container.getItemDamage()) * 1000, maxDrain);
 		FluidStack drained = fluid.copy();
 		drained.amount = drainAmount;
 		if (doDrain && !realInfinite) {
-			fluid.amount -= drainAmount;
 			container.setItemDamage(container.getItemDamage() + drainAmount / 1000);
 		}
 		return drained;

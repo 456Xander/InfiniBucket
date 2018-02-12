@@ -14,10 +14,11 @@ import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.oredict.OreDictionary;
 
 @Mod(modid = InfiniBucket.MODID, name = "Infini Bucket", version = "1.0.1")
 public class InfiniBucket {
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 
 	public static final String MODID = "infinibucket";
 
@@ -36,8 +37,9 @@ public class InfiniBucket {
 		Configuration conf = new Configuration(e.getSuggestedConfigurationFile());
 		data.capacity = conf.getInt("capacity", "bucket", 0, 0, Integer.MAX_VALUE,
 				"how many buckets of water an infinite bucket stores (0 = infinity)");
-		IBItems.createItems(conf);
+		IBItems.createItems(data);
 		MinecraftForge.EVENT_BUS.register(new RegistryHandler());
+		conf.save();
 	}
 
 	@EventHandler
@@ -46,6 +48,6 @@ public class InfiniBucket {
 		System.out.println("InfiniBucket Init Begin");
 		System.out.println("---------------------------------------------------");
 		logger.log(Level.INFO, "Hello");
-		InfiniBucket.proxy.registerTexture(IBItems.itemInfiniBucket);
+		InfiniBucket.proxy.registerTexture(IBItems.itemInfiniBucket, 0);
 	}
 }

@@ -3,6 +3,7 @@ package at.xander.infinibucket.main;
 import at.xander.infinibucket.item.FluidHandlerInfiniBucket;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.block.BlockCauldron;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -26,7 +27,7 @@ import net.minecraftforge.fluids.FluidRegistry;
 public class ItemInfBucket extends ItemBucket {
 
 	static FluidHandlerInfiniBucket ItemFluidHandler = null;
-	private int capacity = 100;
+	private int capacity;
 
 	public ItemInfBucket() {
 		this(0);
@@ -35,18 +36,14 @@ public class ItemInfBucket extends ItemBucket {
 	public ItemInfBucket(int capacity) {
 		super(Blocks.FLOWING_WATER);
 		this.capacity = capacity;
-
-	}
-
-	@Override
-	public boolean isDamageable() {
-		return true;
+		this.setMaxDamage(capacity);
+		this.setHasSubtypes(false);
 	}
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
 		ItemStack itemstack = playerIn.getHeldItem(handIn);
-		RayTraceResult raytraceresult = this.rayTrace(worldIn, playerIn, false);
+		RayTraceResult raytraceresult = this.rayTrace(worldIn, playerIn, itemstack.getItemDamage() != 0);
 
 		if (raytraceresult == null) {
 			return new ActionResult<ItemStack>(EnumActionResult.PASS, itemstack);
@@ -54,18 +51,27 @@ public class ItemInfBucket extends ItemBucket {
 			return new ActionResult<ItemStack>(EnumActionResult.PASS, itemstack);
 		}
 
-		itemstack.setItemDamage(itemstack.getItemDamage() - 1);
-
 		BlockPos blockpos = raytraceresult.getBlockPos();
 		IBlockState block = worldIn.getBlockState(blockpos);
-
-		if (block.getBlock() instanceof BlockCauldron) { // Block is Cauldron
+		if(block.getMaterial() == Material.WATER) {
+			worldIn.setBlockState(blockpos, Blocks.AIR.getDefaultState(),11); // flag 11 = send changes to client and immediately re render
+			playerIn.addStat(StatList.getObjectUseStats(this));
+            playerIn.playSound(SoundEvents.ITEM_BUCKET_FILL, 1.0F, 1.0F);
+            itemstack.setItemDamage(0);
+            return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemstack);
+		}
+		else if(capacity != 0 && itemstack.getItemDamage() == capacity) {
+			return new ActionResult<ItemStack>(EnumActionResult.PASS, itemstack); 
+		}
+		else if (block.getBlock() instanceof BlockCauldron) { // Block is Cauldron
 			System.out.println("Filling Cauldron");
 			BlockCauldron cauldron = (BlockCauldron) block.getBlock();
 			int level = ((Integer) block.getValue(BlockCauldron.LEVEL)).intValue();
 			if (level < 3 && !worldIn.isRemote) {
 				playerIn.addStat(StatList.CAULDRON_FILLED);
 				cauldron.setWaterLevel(worldIn, blockpos, block, 3);
+				
+				itemstack.damageItem(1, playerIn);
 
 				worldIn.playSound((EntityPlayer) null, blockpos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS,
 						1.0F, 1.0F);
@@ -84,7 +90,7 @@ public class ItemInfBucket extends ItemBucket {
 					CriteriaTriggers.PLACED_BLOCK.trigger((EntityPlayerMP) playerIn, blockpos1, itemstack);
 				}
 
-				itemstack.setItemDamage(itemstack.getItemDamage() + 1);
+				itemstack.damageItem(1, playerIn);
 
 				playerIn.addStat(StatList.getObjectUseStats(this));
 				return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, itemstack);
@@ -98,7 +104,7 @@ public class ItemInfBucket extends ItemBucket {
 	@Override
 	public ICapabilityProvider initCapabilities(ItemStack stack, NBTTagCompound nbt) {
 		if (this.getClass() == ItemInfBucket.class) {
-			ItemFluidHandler = new FluidHandlerInfiniBucket(stack, 10000, FluidRegistry.WATER);
+			ItemFluidHandler = new FluidHandlerInfiniBucket(stack, capacity == 0, FluidRegistry.WATER);
 			return ItemFluidHandler;
 		}
 		return super.initCapabilities(stack, nbt);
@@ -111,8 +117,7 @@ public class ItemInfBucket extends ItemBucket {
 
 	@Override
 	public double getDurabilityForDisplay(ItemStack stack) {
-		capacity = 100;
-		return capacity != 0 ? 1 - ((double) stack.getItemDamage() / capacity) : 1;
+		return capacity != 0 ? ((double) stack.getItemDamage() / capacity) : 0;
 	}
 
 }

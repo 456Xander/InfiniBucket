@@ -2,6 +2,7 @@ package at.xander.infinibucket.item;
 
 import java.util.List;
 
+import at.xander.infinibucket.main.IBConfigData;
 import at.xander.infinibucket.main.InfiniBucket;
 import at.xander.infinibucket.main.ItemInfBucket;
 import net.minecraft.item.Item;
@@ -19,9 +20,8 @@ public class IBItems {
 		registry.add(itemInfiniBucket);
 	}
 
-	public static void createItems(Configuration conf) {
-		if (itemInfiniBucket == null) {
-			itemInfiniBucket = new ItemInfBucket().setUnlocalizedName("infini_bucket").setRegistryName("infini_bucket");
-		}
+	public static void createItems(IBConfigData data) {
+		itemInfiniBucket = new ItemInfBucket(data.getCapacity()).setUnlocalizedName("infini_bucket")
+				.setRegistryName("infini_bucket");
 	}
 }
